@@ -63,7 +63,7 @@ with col1:
     art_style = st.text_input("Art Style", "MAPPA anime")
 
 with col2:
-    target_tool = st.selectbox("Target Tool", ["Generic", "Higgsfield", "Kling", "Runway", "Pika"])
+    target_tool = st.selectbox("Target Tool", ["Generic", "Seedance", "Higgsfield", "Kling", "Runway", "Pika"])
     mood_notes = st.text_input("Mood / Tempo Notes", "", placeholder="e.g. brooding low end, half-time drop at the reveal")
 
 # The master prompt's non-negotiables, shared by every agent

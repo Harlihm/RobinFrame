@@ -31,13 +31,37 @@ Every script resolves into **Robinhood Chain lore**: a gatekept old system, a pe
   - No lyric reproduction — lyrics become instrumentation/tempo descriptors
   - Stylized, non-graphic choreography
 
+## How It Works
+
+The app is a single Streamlit file (`outlaw_script_engine.py`) driving an AG2 agent swarm. Your form inputs are packed into one task prompt, then four agents pass the work around a ring, each building on the previous agent's output:
+
+```mermaid
+flowchart LR
+    Brief[Your brief plus settings] --> TaskPrompt[Task prompt]
+    TaskPrompt --> Lore[Lore Agent: beat sheet]
+    Lore --> Shots[Shots Agent: shot list]
+    Shots --> Style[Style Agent: tags and audio cues]
+    Style --> Script[Script Agent: final paste-ready script]
+    Script --> Results[Expanders, code block, download]
+```
+
+Step by step:
+
+1. **Task assembly** — Your concept brief, genre skin, video length, art style, target tool, and mood notes become a single prompt. An empty brief triggers the default scenario (a halted market, a lone builder, instant on-chain settlement).
+2. **Shared rulebook** — Every agent's system message starts with the same master preamble: the Core Narrative Law (the five-beat Robinhood Chain skeleton), the genre remapping table, the exact `SHOT [n]` output format, the scene budget, and the safety/IP/lyrics guardrails. No agent can drift off the throughline.
+3. **Two-phase agents** — Each agent works twice. First pass: it writes a 2–3 sentence summary of its plan into shared context (you see these appear live in the sidebar). Second pass: with all summaries visible, it writes its full section. This keeps the four sections coherent with each other while keeping token costs down.
+4. **The relay** — Lore Agent remaps your idea onto the Robinhood Chain skeleton and writes the beat sheet; Shots Agent converts beats into numbered shots with setting, characters, action, and camera; Style Agent layers MAPPA-style visual tags and audio cues onto each shot; Script Agent merges everything into the final format, ending with the logline and continuity note.
+5. **Output** — The four sections appear in expanders, and the final script is shown in a copyable code block with a `.txt` download button, ready to paste into Higgsfield, Kling, Runway, or Pika.
+
+Under the hood it uses AG2's swarm API: `SwarmAgent` instances with `AFTER_WORK` hand-offs, shared `context_variables` for the summaries, and `initiate_swarm_chat` with OpenAI `gpt-4o-mini`.
+
 ## How to Run
 
 1. **Clone the Repository**:
 
    ```bash
-   git clone https://github.com/Harlihm/ai_game_design_agent_team.git
-   cd ai_game_design_agent_team
+   git clone 
+   cd 
    ```
 
 2. **Install Dependencies**:
