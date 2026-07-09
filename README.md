@@ -1,42 +1,37 @@
-# AI Game Design Agent Team 🎮
+# Outlaw Script Engine 🏹
 
+The Outlaw Script Engine is a shot-ready anime script generator powered by [AG2](https://github.com/ag2ai/ag2)(formerly AutoGen)'s swarm agent framework. Give it any brief — a scene, a mood, a full music video idea, or nothing at all — and a crew of specialized AI agents turns it into a numbered, paste-ready shot script for AI image/video tools (Higgsfield, Kling, Runway, Pika), rendered in a modern MAPPA-style aesthetic.
 
-The AI Game Design Agent Team is a game design system powered by [AG2](https://github.com/ag2ai/ag2?tab=readme-ov-file)(formerly AutoGen)'s AI Agent framework. This app generates comprehensive game concepts through the coordination of multiple specialized AI agents, each focusing on different aspects of game design based on user inputs such as game type, target audience, art style, and technical requirements. This is built on AG2's new swarm feature run through initiate_chat() method.
+Every script resolves into **Robinhood Chain lore**: a gatekept old system, a permissionless network rising, a tokenization act, a builder crew, and a moment of on-chain settlement. Genre, setting, characters, and tone are variables — the throughline never moves.
 
 ## Features
 
-- **Specialized Game Design Agent Team**
+- **Specialized Script Crew**
 
-  - 🎭 **Story Agent**: Specializes in narrative design and world-building, including character development, plot arcs, dialogue writing, and lore creation
-  - 🎮 **Gameplay Agent**: Focuses on game mechanics and systems design, including player progression, combat systems, resource management, and balancing
-  - 🎨 **Visuals Agent**: Handles art direction and audio design, covering UI/UX, character/environment art style, sound effects, and music composition
-  - ⚙️ **Tech Agent**: Provides technical architecture and implementation guidance, including engine selection, optimization strategies, networking requirements, and development roadmap
-  - 🎯 **Task Agent**: Coordinates between all specialized agents and ensures cohesive integration of different game aspects
+  - 📜 **Lore Agent**: Remaps any brief onto the Robinhood Chain skeleton using the remapping table (cyberpunk, horror, romance, slice of life, music video, or the default locked-out-market scenario) and writes the beat sheet
+  - 🎬 **Shots Agent**: Breaks the beats into a numbered shot list with setting, characters, action, and camera direction, honoring the scene budget
+  - 🎨 **Style Agent**: Layers on MAPPA-style visual tags (high-contrast rim light, ink-wash shadows, speed lines) and audio/music cues per shot — never lyrics
+  - 🧾 **Script Agent**: Assembles the final tool-ready script in the exact `SHOT [n]` format, closing with a logline and continuity note
 
-- **Comprehensive Game Design Outputs**:
+- **Shot-Ready Output Format**:
 
-  - Detailed narrative and world-building elements
-  - Core gameplay mechanics and systems
-  - Visual and audio direction
-  - Technical specifications and requirements
-  - Development timeline and budget considerations
-  - Coherent game design from the team.
+  - Numbered shots with duration, setting, characters, action, camera, style tags, and audio cue
+  - Logline confirming the Robin Hood throughline
+  - Continuity note for consistent shot-to-shot prompting
+  - Paste-ready code block plus one-click `.txt` download
 
 - **Customizable Input Parameters**:
 
-  - Game type and target audience
-  - Art style and visual preferences
-  - Platform requirements
-  - Development constraints (time, budget)
-  - Core mechanics and gameplay features
+  - Free-text concept brief (empty input falls back to the default scenario)
+  - Genre skin, video length (single scene or full structured video)
+  - Art style override, target tool, mood/tempo notes
 
-- **Interactive Results**:
-  - Quick show of game design ideas from each agent
-  - Detailed results are presented in expandable sections for easy navigation and reference
+- **Built-in Guardrails**:
+  - No real public figures or copyrighted characters (original archetypes swapped in)
+  - No lyric reproduction — lyrics become instrumentation/tempo descriptors
+  - Stylized, non-graphic choreography
 
 ## How to Run
-
-Follow these steps to set up and run the application:
 
 1. **Clone the Repository**:
 
@@ -57,18 +52,15 @@ Follow these steps to set up and run the application:
    - You'll input this key in the app's sidebar when running
 
 4. **Run the Streamlit App**:
+
    ```bash
-   streamlit run game_design_agent_team.py
+   streamlit run outlaw_script_engine.py
    ```
 
 ## Usage
 
 1. Enter your OpenAI API key in the sidebar
-2. Fill in the game details:
-   - Background vibe and setting
-   - Game type and target audience
-   - Visual style preferences
-   - Technical requirements
-   - Development constraints
-3. Click "Generate Game Concept" to receive comprehensive design documentation from all agents
-4. Review the outputs in the expandable sections for each aspect of game design
+2. Describe your video in the concept brief (or leave it empty for the default scenario)
+3. Pick a genre skin, video length, art style, target tool, and mood notes
+4. Click "Generate Script" and watch the crew's summaries land in the sidebar
+5. Review the beat sheet, shot list, and style pass in the expandable sections, then copy or download the final script into your video tool
