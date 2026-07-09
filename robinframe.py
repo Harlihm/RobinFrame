@@ -1,4 +1,8 @@
+import os
+import time
+
 import streamlit as st
+from dotenv import load_dotenv
 from autogen import (
     SwarmAgent,
     SwarmResult,
@@ -8,40 +12,157 @@ from autogen import (
     UPDATE_SYSTEM_MESSAGE
 )
 
-# Initialize session state
+# ---------------------------------------------------------------------------
+# Config
+# ---------------------------------------------------------------------------
+load_dotenv()
+API_KEY = os.getenv("OPENAI_API_KEY", "")
+
+MAX_GENERATIONS_PER_SESSION = 5   # hard cap per browser session
+COOLDOWN_SECONDS = 60             # min gap between generations
+
+st.set_page_config(
+    page_title="RobinFrame",
+    page_icon="🏹",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+# ---------------------------------------------------------------------------
+# Styling
+# ---------------------------------------------------------------------------
+st.markdown("""
+<style>
+    .stApp {
+        background: radial-gradient(ellipse at top, #1a1f2e 0%, #0d0f17 60%);
+    }
+    .hero {
+        text-align: center;
+        padding: 2.2rem 1rem 1.6rem 1rem;
+        border-radius: 18px;
+        background: linear-gradient(135deg, rgba(0,200,120,0.12) 0%, rgba(120,80,255,0.12) 100%);
+        border: 1px solid rgba(0,200,120,0.25);
+        margin-bottom: 1.5rem;
+    }
+    .hero h1 {
+        font-size: 2.6rem;
+        margin: 0;
+        background: linear-gradient(90deg, #00e28a, #9b7bff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 0.5px;
+    }
+    .hero p {
+        color: #aab3c5;
+        margin: 0.6rem auto 0 auto;
+        max-width: 640px;
+        font-size: 1.02rem;
+        line-height: 1.55;
+    }
+    .crew-card {
+        background: rgba(255,255,255,0.035);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 14px;
+        padding: 1rem 1.1rem;
+        height: 100%;
+    }
+    .crew-card .emoji { font-size: 1.6rem; }
+    .crew-card h4 { margin: 0.35rem 0 0.25rem 0; color: #e8ecf4; font-size: 1rem; }
+    .crew-card p { color: #97a1b5; font-size: 0.85rem; margin: 0; line-height: 1.45; }
+    div.stButton > button:first-child {
+        background: linear-gradient(90deg, #00c878, #7b5cff);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.7rem 2.4rem;
+        font-size: 1.05rem;
+        font-weight: 600;
+        width: 100%;
+        transition: opacity 0.2s ease;
+    }
+    div.stButton > button:first-child:hover { opacity: 0.88; color: white; }
+    .quota-pill {
+        display: inline-block;
+        background: rgba(0,200,120,0.15);
+        border: 1px solid rgba(0,200,120,0.4);
+        color: #4ade9d;
+        border-radius: 999px;
+        padding: 0.25rem 0.9rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    [data-testid="stSidebar"] {
+        background: #10131d;
+        border-right: 1px solid rgba(255,255,255,0.06);
+    }
+    .streamlit-expanderHeader { font-weight: 600; }
+</style>
+""", unsafe_allow_html=True)
+
+# ---------------------------------------------------------------------------
+# Session state
+# ---------------------------------------------------------------------------
 if 'output' not in st.session_state:
     st.session_state.output = {'lore': '', 'shots': '', 'style': '', 'script': ''}
+if 'generation_count' not in st.session_state:
+    st.session_state.generation_count = 0
+if 'last_generation_at' not in st.session_state:
+    st.session_state.last_generation_at = 0.0
 
-# Sidebar for API key input
-st.sidebar.title("API Key")
-api_key = st.sidebar.text_input("Enter your OpenAI API Key", type="password")
+remaining = MAX_GENERATIONS_PER_SESSION - st.session_state.generation_count
 
-st.sidebar.success("""
-🏹 **Getting Started**
+# ---------------------------------------------------------------------------
+# Sidebar
+# ---------------------------------------------------------------------------
+with st.sidebar:
+    st.markdown("## 🏹 RobinFrame")
+    st.markdown(
+        f'<span class="quota-pill">{remaining} / {MAX_GENERATIONS_PER_SESSION} generations left</span>',
+        unsafe_allow_html=True,
+    )
+    st.markdown("")
+    st.markdown("""
+**How it works**
 
-Describe the video you want — a scene, a vibe, a full music video. Anything works, even one word or nothing at all (the default scenario kicks in).
+Describe the video you want — a scene, a vibe, a full music video. Even one word (or nothing) works: the default scenario kicks in.
 
 Whatever you give it, the engine resolves it into a Robinhood Chain story: a gatekept old system, a permissionless network rising, a tokenization act, a builder crew, and a moment of on-chain settlement.
 
 The output is a numbered, shot-ready script you can paste straight into your video tool.
-""")
+    """)
+    st.divider()
+    st.caption("Generations are rate-limited per session to keep the shared API budget alive.")
 
-# Main app UI
-st.title("🏹 Outlaw Script Engine")
+# ---------------------------------------------------------------------------
+# Hero + crew
+# ---------------------------------------------------------------------------
+st.markdown("""
+<div class="hero">
+    <h1>🏹 RobinFrame</h1>
+    <p>Shot-ready MAPPA-style anime scripts for AI video tools.
+    Every script settles into Robinhood Chain lore — the open network wins, every time.</p>
+</div>
+""", unsafe_allow_html=True)
 
-st.info("""
-**Meet the Script Crew:**
+crew_cols = st.columns(4)
+crew = [
+    ("📜", "Lore Agent", "Remaps your idea onto the Robinhood Chain skeleton and writes the beat sheet"),
+    ("🎬", "Shots Agent", "Breaks the beats into a numbered shot list with setting, action, and camera"),
+    ("🎨", "Style Agent", "Layers on MAPPA-style visual tags and audio/music cues per shot"),
+    ("🧾", "Script Agent", "Assembles the final tool-ready script with logline and continuity note"),
+]
+for col, (emoji, name, desc) in zip(crew_cols, crew):
+    with col:
+        st.markdown(
+            f'<div class="crew-card"><div class="emoji">{emoji}</div><h4>{name}</h4><p>{desc}</p></div>',
+            unsafe_allow_html=True,
+        )
 
-📜 **Lore Agent** - Remaps your idea onto the Robinhood Chain skeleton and writes the beat sheet
+st.markdown("")
 
-🎬 **Shot Agent** - Breaks the beats into a numbered shot list with setting, action, and camera
-
-🎨 **Style Agent** - Layers on MAPPA-style visual tags and audio/music cues per shot
-
-🧾 **Script Agent** - Assembles the final tool-ready script with logline and continuity note
-""")
-
-# User inputs
+# ---------------------------------------------------------------------------
+# Inputs
+# ---------------------------------------------------------------------------
 st.subheader("Your Brief")
 concept = st.text_area(
     "Concept / brief (leave empty for the default scenario)",
@@ -68,7 +189,7 @@ with col2:
 
 # The master prompt's non-negotiables, shared by every agent
 MASTER_PREAMBLE = """
-You are part of the Outlaw Script Engine, a specialized generator of shot-ready anime video scripts for AI image/video generation tools (Higgsfield, Kling, Runway, Pika, etc.), rendered by default in a modern MAPPA-style aesthetic (Jujutsu Kaisen / Yasuke lineage: high-contrast lighting, kinetic fight choreography, painterly backgrounds, expressive character linework).
+You are part of RobinFrame, a specialized generator of shot-ready anime video scripts for AI image/video generation tools (Higgsfield, Kling, Runway, Pika, etc.), rendered by default in a modern MAPPA-style aesthetic (Jujutsu Kaisen / Yasuke lineage: high-contrast lighting, kinetic fight choreography, painterly backgrounds, expressive character linework).
 
 CORE NARRATIVE LAW (non-negotiable, applies to every output):
 Every script must resolve into Robinhood Chain lore — the real Web3 story, not the folklore outlaw. Genre, setting, characters, and tone are variables remapped onto this skeleton:
@@ -118,11 +239,27 @@ EDGE CASES:
 What never changes: Format = numbered shot script. Style = MAPPA-anime (unless overridden). Throughline = Robin Hood.
 """
 
-# Button to start the agent collaboration
-if st.button("Generate Script"):
-    if not api_key:
-        st.error("Please enter your OpenAI API key.")
+# ---------------------------------------------------------------------------
+# Generation
+# ---------------------------------------------------------------------------
+st.markdown("")
+generate_clicked = st.button("🏹 Generate Script")
+
+if generate_clicked:
+    now = time.time()
+    seconds_since_last = now - st.session_state.last_generation_at
+
+    if not API_KEY:
+        st.error("Server is missing its OpenAI API key. Add OPENAI_API_KEY to the .env file and restart the app.")
+    elif st.session_state.generation_count >= MAX_GENERATIONS_PER_SESSION:
+        st.error(f"Session limit reached ({MAX_GENERATIONS_PER_SESSION} generations). Refresh the page to start a new session.")
+    elif st.session_state.last_generation_at and seconds_since_last < COOLDOWN_SECONDS:
+        wait = int(COOLDOWN_SECONDS - seconds_since_last)
+        st.warning(f"Cooling down — try again in {wait}s.")
     else:
+        st.session_state.generation_count += 1
+        st.session_state.last_generation_at = now
+
         with st.spinner('🏹 The crew is deploying your script...'):
             task = f"""
             Produce a shot-ready video script from this brief:
@@ -134,7 +271,7 @@ if st.button("Generate Script"):
             - Mood / tempo notes: {mood_notes or "(none)"}
             """
 
-            llm_config = {"config_list": [{"model": "gpt-4o-mini", "api_key": api_key}]}
+            llm_config = {"config_list": [{"model": "gpt-4o-mini", "api_key": API_KEY}]}
 
             context_variables = {
                 "lore": None,
@@ -194,7 +331,7 @@ if st.button("Generate Script"):
                 "script_agent": MASTER_PREAMBLE + """
             You are the Script Agent. Your task is to:
             1. Assemble the final, complete, paste-ready script by merging the shot list and style pass into the exact per-shot OUTPUT FORMAT (SHOT [n] — duration / Setting / Characters / Action / Camera / Style tags / Audio-music cue).
-            2. Adapt descriptor phrasing to the user's named target tool; if Generic, keep descriptors portable with no tool-specific parameter syntax.
+            2. Adapt descriptor phrasing to the user's named target tool; if Generic, keep descriptors portable with no tool-specific parameter syntax. For Seedance, write each shot as one flowing natural-language prompt paragraph (subject + action + camera movement + lighting + style), keep camera directions explicit (e.g. "slow push-in", "tracking shot"), and keep each shot's prompt self-contained since shots are generated independently.
             3. End with LOGLINE (one sentence confirming the Robin Hood throughline) and CONTINUITY NOTE (character/style details to keep consistent shot-to-shot).
             4. Output only the script — no commentary before or after, no XML tags.
                 """
@@ -285,23 +422,29 @@ if st.button("Generate Script"):
 
         st.success('🏹 Script generated and settled on-chain!')
 
-        with st.expander("Lore Beat Sheet"):
-            st.markdown(st.session_state.output['lore'])
+# ---------------------------------------------------------------------------
+# Results (persist across reruns within the session)
+# ---------------------------------------------------------------------------
+if st.session_state.output['script']:
+    st.divider()
 
-        with st.expander("Shot List"):
-            st.markdown(st.session_state.output['shots'])
+    with st.expander("📜 Lore Beat Sheet"):
+        st.markdown(st.session_state.output['lore'])
 
-        with st.expander("Style Pass"):
-            st.markdown(st.session_state.output['style'])
+    with st.expander("🎬 Shot List"):
+        st.markdown(st.session_state.output['shots'])
 
-        with st.expander("Final Script", expanded=True):
-            st.markdown(st.session_state.output['script'])
+    with st.expander("🎨 Style Pass"):
+        st.markdown(st.session_state.output['style'])
 
-        st.subheader("Paste-ready script")
-        st.code(st.session_state.output['script'], language=None)
-        st.download_button(
-            "Download script (.txt)",
-            st.session_state.output['script'],
-            file_name="outlaw_script.txt",
-            mime="text/plain",
-        )
+    with st.expander("🧾 Final Script", expanded=True):
+        st.markdown(st.session_state.output['script'])
+
+    st.subheader("Paste-ready script")
+    st.code(st.session_state.output['script'], language=None)
+    st.download_button(
+        "⬇️ Download script (.txt)",
+        st.session_state.output['script'],
+            file_name="robinframe_script.txt",
+        mime="text/plain",
+    )
