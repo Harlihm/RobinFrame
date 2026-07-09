@@ -1,7 +1,8 @@
 # RobinFrame 🏹
 
 RobinFrame is a shot-ready anime script generator powered by [AG2](https://github.com/ag2ai/ag2)(formerly AutoGen)'s swarm agent framework. Give it any brief — a scene, a mood, a full music video idea, or nothing at all — and a crew of specialized AI agents turns it into a numbered, paste-ready shot script for AI image/video tools (Seedance, Higgsfield, Kling, Runway, Pika), rendered in a modern MAPPA-style aesthetic.
-
+ 
+ 
 Every script resolves into **Robinhood Chain lore**: a gatekept old system, a permissionless network rising, a tokenization act, a builder crew, and a moment of on-chain settlement. Genre, setting, characters, and tone are variables — the throughline never moves.
 
 ## Features
